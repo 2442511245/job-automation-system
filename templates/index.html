@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>求职自动化仪表盘</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <!-- ======== 侧边栏 ======== -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-brand">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
+            <span>JobBot</span>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="#" class="nav-item active" data-page="dashboard"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><span>仪表盘</span></a>
+            <a href="#" class="nav-item" data-page="settings"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg><span>系统设置</span></a>
+            <a href="#" class="nav-item" data-page="history"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><span>历史记录</span></a>
+        </nav>
+        <div class="sidebar-footer"><div class="status-dot" id="serverStatus"></div><span id="serverStatusText">检查中...</span></div>
+    </aside>
+
+    <!-- ======== 主内容区 ======== -->
+    <main class="main-content">
+
+        <!-- ---- 仪表盘 ---- -->
+        <section class="page active" id="page-dashboard">
+            <header class="page-header"><h1>📊 数据仪表盘</h1><p id="currentDate">加载中...</p></header>
+            <div class="kpi-grid">
+                <div class="kpi-card"><div class="kpi-label">今日已发送</div><div class="kpi-value" id="kpiSent">--</div><div class="kpi-sub">上限 <span id="kpiLimit">150</span></div></div>
+                <div class="kpi-card accent-green"><div class="kpi-label">已读数</div><div class="kpi-value" id="kpiRead">--</div><div class="kpi-sub">已读率 <span id="kpiReadRate">--</span></div></div>
+                <div class="kpi-card accent-blue"><div class="kpi-label">回复数</div><div class="kpi-value" id="kpiReplied">--</div><div class="kpi-sub">回复率 <span id="kpiReplyRate">--</span></div></div>
+                <div class="kpi-card accent-purple"><div class="kpi-label">平均匹配度</div><div class="kpi-value" id="kpiAvgScore">--</div><div class="kpi-sub">/ 100</div></div>
+            </div>
+            <div class="card" style="margin-bottom: 20px;">
+                <h3>⏰ 分时段进度</h3>
+                <div class="progress-row"><span class="progress-label">上午场 (9:00-11:00)</span><div class="progress-bar"><div class="progress-fill morning" id="morningBar"></div></div><span class="progress-text" id="morningText">0/75</span></div>
+                <div class="progress-row"><span class="progress-label">下午场 (14:00-16:00)</span><div class="progress-bar"><div class="progress-fill afternoon" id="afternoonBar"></div></div><span class="progress-text" id="afternoonText">0/75</span></div>
+            </div>
+            <div style="text-align: center; margin: 32px 0;"><button class="btn-primary btn-lg" id="btnGenerateReport" onclick="generateReport()">📄 生成今日报告</button></div>
+            <div id="reportContainer" style="display:none;"><div id="reportContent"></div><div style="text-align:center; margin: 20px 0;"><button class="btn-secondary" onclick="copyReport()">📋 一键复制全文</button></div></div>
+        </section>
+
+        <!-- ---- 设置 ---- -->
+        <section class="page" id="page-settings">
+            <header class="page-header"><h1>⚙️ 系统设置</h1><p>修改配置后点击保存，所有模块自动生效</p></header>
+            <form id="settingsForm" class="settings-form">
+
+                <!-- 简历知识库 -->
+                <div class="card settings-section">
+                    <h3>📁 母版简历知识库 <span class="badge">永久存储</span><span class="badge badge-info">最多3份</span></h3>
+                    <p class="section-desc">上传 PDF 简历后系统自动提取文本，构建你的完整能力画像。AI 将基于此知识库进行<strong>语义级匹配</strong>——分析岗位职责、技术栈和项目类型，而非简单比对岗位名称。</p>
+                    <div class="resume-grid" id="resumeGrid"><div class="resume-empty">暂无简历，请上传 PDF</div></div>
+                    <div class="resume-upload-area" id="resumeUploadArea">
+                        <input type="file" id="resumeFileInput" accept=".pdf" style="display:none;">
+                        <button type="button" class="btn-secondary" id="btnUploadResume">📎 上传 PDF 简历（<span id="resumeRemaining">3</span>/3 可用）</button>
+                        <span class="upload-hint">支持拖拽 PDF 文件到此处</span>
+                    </div>
+                </div>
+
+                <!-- 智能匹配 -->
+                <div class="card settings-section">
+                    <h3>🎯 智能匹配配置</h3>
+                    <p class="section-desc">AI 会分析岗位描述中的<strong>职责、技术栈和项目类型</strong>，与你的简历知识库做语义比对。<em>不再被岗位名称限制——</em>HR 写的"软件工程师""服务端开发""系统架构师"只要内容匹配，都会获得高分。</p>
+                    <div class="form-group"><label>目标岗位方向</label><textarea id="setTargetRoles" rows="2" placeholder="描述你期望的方向。例如：Java后端开发、微服务架构方向、高性能服务端。AI 用作软性偏好参考，不是硬性过滤条件。"></textarea><span class="form-hint">方向性描述，引导 AI 偏好但不会错杀名称不同的相关岗位</span></div>
+                    <div class="form-group"><label>核心技能关键词</label><textarea id="setCoreSkills" rows="2" placeholder="例如：Java、Spring Boot、MySQL、Redis、高并发、微服务、Docker。逗号或空格分隔。留空则 AI 从简历中自动推断。"></textarea><span class="form-hint">可选。AI 用这些标签辅助判断技能重叠度</span></div>
+                </div>
+
+                <!-- 补充信息 -->
+                <div class="card settings-section">
+                    <h3>📝 补充信息（可选）</h3>
+                    <div class="form-group"><label>额外说明</label><textarea id="setResumeText" rows="3" placeholder="简历 PDF 中未包含的信息（最新项目经历、证书、期望薪资等），可在此补充。会合并到知识库参与 AI 评估。"></textarea></div>
+                </div>
+
+                <!-- API -->
+                <div class="card settings-section">
+                    <h3>🔑 API 配置</h3>
+                    <div class="form-group"><label>API Key（阿里云百炼）</label><input type="password" id="setApiKey" placeholder="sk-xxxxxxxxxxxxxxxx" autocomplete="off"><span class="form-hint">密钥仅存储在本地，通过后端转发调用 AI</span></div>
+                    <div class="form-group"><label>AI 模型</label><select id="setModelName"><option value="">加载中...</option></select></div>
+                    <div class="form-group"><label>自定义模型 ID（可选）</label><input type="text" id="setCustomModel" placeholder="填写则覆盖上方选择"></div>
+                </div>
+
+                <!-- 策略 -->
+                <div class="card settings-section">
+                    <h3>🎯 打招呼策略</h3>
+                    <div class="form-row"><div class="form-group"><label>匹配度阈值</label><input type="number" id="setMatchThreshold" min="0" max="100" step="5"></div><div class="form-group"><label>每日发送上限</label><input type="number" id="setDailyLimit" min="0" max="500"></div><div class="form-group"><label>上午配额</label><input type="number" id="setMorningQuota" min="0" max="500"></div><div class="form-group"><label>下午配额</label><input type="number" id="setAfternoonQuota" min="0" max="500"></div></div>
+                    <div class="form-row"><div class="form-group"><label>上午开始(时)</label><input type="number" id="setMorningStart" min="0" max="23"></div><div class="form-group"><label>上午结束(时)</label><input type="number" id="setMorningEnd" min="0" max="23"></div><div class="form-group"><label>下午开始(时)</label><input type="number" id="setAfternoonStart" min="0" max="23"></div><div class="form-group"><label>下午结束(时)</label><input type="number" id="setAfternoonEnd" min="0" max="23"></div></div>
+                </div>
+
+                <!-- 跟进 -->
+                <div class="card settings-section">
+                    <h3>🔔 沉默跟进</h3>
+                    <div class="form-row"><div class="form-group"><label>沉默天数阈值</label><input type="number" id="setSilentDays" min="1" max="14"></div><div class="form-group"><label>跟进最低匹配度</label><input type="number" id="setFollowupThreshold" min="0" max="100" step="5"></div></div>
+                </div>
+
+                <div class="settings-actions"><button type="button" class="btn-primary btn-lg" id="btnSaveSettings">💾 保存设置</button><span class="save-status" id="saveStatus"></span></div>
+            </form>
+        </section>
+
+        <!-- ---- 历史 ---- -->
+        <section class="page" id="page-history">
+            <header class="page-header"><h1>📅 历史记录</h1><p>查看历史报告与数据</p></header>
+            <div class="card">
+                <div style="display:flex; align-items:center; gap:16px; margin-bottom:20px;"><label style="font-weight:600;">选择日期：</label><select id="historyDateSelect" style="padding:8px 16px; border-radius:6px; border:1px solid #d1d5db; font-size:14px;"><option value="">加载中...</option></select><button class="btn-primary" onclick="loadHistoryReport()">查看报告</button></div>
+                <div id="historyReportContainer"></div>
+            </div>
+        </section>
+
+    </main>
+
+    <div class="toast" id="toast"></div>
+    <script src="/static/dashboard.js"></script>
+</body>
+</html>

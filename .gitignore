@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+*.pyo
+__pycache__
+*.log
+排错调试日志.txt
+server.log
