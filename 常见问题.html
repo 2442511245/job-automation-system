@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>求职自动化系统 - 常见问题</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, "Microsoft YaHei", sans-serif;
+    line-height: 1.8;
+    color: #333;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    background: #f8f9fa;
+  }
+  .header {
+    text-align: center;
+    padding: 40px 20px;
+    background: linear-gradient(135deg, #43a047 0%, #1b5e20 100%);
+    color: white;
+    border-radius: 16px;
+    margin-bottom: 30px;
+  }
+  .header h1 { font-size: 1.8em; }
+  .qa {
+    background: white;
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 16px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  }
+  .qa .q {
+    font-size: 1.1em;
+    font-weight: 700;
+    color: #2e7d32;
+    margin-bottom: 8px;
+  }
+  .qa .q::before { content: "Q: "; }
+  .qa .a { color: #555; }
+  .qa .a::before { content: "A: "; }
+  code {
+    background: #f0f0f0;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 0.9em;
+  }
+  a { color: #2e7d32; }
+  .footer {
+    text-align: center;
+    color: #999;
+    margin-top: 30px;
+    font-size: 0.9em;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>📋 常见问题 FAQ</h1>
+</div>
+
+<div class="qa">
+  <p class="q">双击一键启动.bat 后窗口一闪而过？</p>
+  <p class="a">说明 Python 没有正确安装或未添加到 PATH。请重新安装 Python，务必勾选 <strong>"Add Python to PATH"</strong>（安装界面的底部复选框）。安装完成后重启电脑再试。</p>
+</div>
+
+<div class="qa">
+  <p class="q">启动后浏览器没有自动打开？</p>
+  <p class="a">手动在浏览器地址栏输入 <strong>http://localhost:5000</strong> 即可访问仪表盘。如果也打不开，检查命令行窗口是否报错。</p>
+</div>
+
+<div class="qa">
+  <p class="q">AI 评估全部失败 / 返回 0 分？</p>
+  <p class="a">检查以下几点：① API Key 是否正确粘贴（在仪表盘「系统设置」中查看）；② API Key 是否已激活（去阿里云百炼控制台确认）；③ 账号是否有余额/免费额度；④ 模型名称是否正确。建议先用 <code>qwen-plus</code> 测试，这个模型响应最快。</p>
+</div>
+
+<div class="qa">
+  <p class="q">脚本启动后一直显示"扫描中"但不发送？</p>
+  <p class="a">可能原因：① 匹配度低于阈值（默认70分），岗位全部被过滤——检查你的候选人档案是否填写完整；② BOSS直聘页面结构更新导致脚本无法识别按钮——检查是否有更新版本；③ 确认你是在 BOSS直聘的<strong>搜索结果页</strong>（URL 包含 /web/geek/），不是在详情页。</p>
+</div>
+
+<div class="qa">
+  <p class="q">发送的是系统默认招呼语而不是 AI 生成的？</p>
+  <p class="a">这是常见问题。BOSS直聘的输入框是特殊组件，脚本已做了多策略注入。如果仍然失败：① 检查控制面板的日志，看招呼语是否已生成；② 尝试先手动在聊天框随便发一条测试消息，确认输入框可用；③ 刷新 BOSS直聘页面后重试。</p>
+</div>
+
+<div class="qa">
+  <p class="q">会不会被 BOSS直聘封号？</p>
+  <p class="a">本工具严格模拟真人操作节奏（间隔随机 20-60 秒、每 10 个长停顿 3-5 分钟），每日上限 150 次在平台允许范围内，且仅发送<strong>个性化</strong>招呼语而非重复模板。已有大量用户正常使用，无封号报告。但任何自动化工具都存在理论风险，请在了解风险的前提下使用。</p>
+</div>
+
+<div class="qa">
+  <p class="q">Mac 系统能用吗？</p>
+  <p class="a">后端 Python 部分完全兼容 Mac/Linux，但 <code>一键启动.bat</code> 是 Windows 批处理脚本。Mac 用户需要手动在终端执行：<code>pip install -r requirements.txt</code> 然后 <code>python app.py</code>。Tampermonkey 浏览器脚本跨平台兼容。</p>
+</div>
+
+<div class="qa">
+  <p class="q">数据存储在哪里？安全吗？</p>
+  <p class="a">所有数据（API Key、简历、发送记录、设置）都存储在 <strong>你自己的电脑</strong> 上（<code>C:\Users\你的用户名\JobReports\</code>），不会上传到任何服务器。AI 评估请求仅发送岗位 JD 文本到阿里云百炼 API，不包含你的个人身份信息。</p>
+</div>
+
+<div class="qa">
+  <p class="q">可以同时在多台电脑上用吗？</p>
+  <p class="a">可以。将解压后的文件夹复制到另一台电脑，重新配置即可。注意：两台电脑的发送记录不互通，配额是各自独立的。</p>
+</div>
+
+<div class="qa">
+  <p class="q">如何获取更新？</p>
+  <p class="a">关注发布渠道获取最新版本。更新时只需替换 <code>app.py</code>、<code>config.py</code> 和 <code>tampermonkey/boss-automation.user.js</code> 三个文件，不会覆盖你的个人数据。</p>
+</div>
+
+<div class="qa">
+  <p class="q">AI 模型选择哪个好？</p>
+  <p class="a"><code>qwen-plus</code> 速度快、成本低，日常使用首选；<code>qwen3.7-max</code> 评估最准确但较慢（约 25 秒/次）；<code>kimi-k2.7</code> 综合均衡；<code>deepseek-v3</code> 逻辑严谨。建议先用 <code>qwen-plus</code> 跑通流程，再根据需要切换。</p>
+</div>
+
+<div class="qa">
+  <p class="q">匹配度阈值设多少合适？</p>
+  <p class="a">70 是平衡点——既能过滤明显不匹配的岗位，又不会漏掉太多。如果你想更激进（投更多），降到 60；想更精准（只投高度匹配），提到 80。</p>
+</div>
+
+<div class="qa">
+  <p class="q">弹窗提醒"切换到消息页采集状态"是什么意思？</p>
+  <p class="a">这是每日定时功能（默认 19:50），提醒你打开 BOSS直聘的消息页，脚本会自动读取每条对话的状态（已读/未读/已回复），更新到仪表盘中，这样你就能知道哪些岗位回复了你。</p>
+</div>
+
+<div class="qa">
+  <p class="q">买错了 / 不会用能退款吗？</p>
+  <p class="a">虚拟商品一经发货不支持退货。但如果在安装过程中遇到任何问题，提供免费的远程协助服务，直到你能正常使用为止。购买前请确认自己的电脑满足使用条件（Windows 10+ / Python 3.10+ / Chrome 或 Edge 浏览器）。</p>
+</div>
+
+<div class="footer">
+  <p>没有找到你的问题？请联系客服获取一对一帮助。</p>
+</div>
+
+</body>
+</html>
