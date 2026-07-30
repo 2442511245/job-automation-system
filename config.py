@@ -188,9 +188,12 @@ def get_model_presets():
 # ============================================================
 # Flask 服务配置
 # ============================================================
-FLASK_HOST = "127.0.0.1"
-FLASK_PORT = 5000
-FLASK_DEBUG = True
+FLASK_HOST = os.environ.get("FLASK_HOST", "127.0.0.1")
+FLASK_PORT = int(os.environ.get("FLASK_PORT", "5000"))
+FLASK_DEBUG = os.environ.get("FLASK_DEBUG", "false").lower() == "true"
+
+# 仪表盘访问密码（可选保护，留空则不启用认证）
+DASHBOARD_PASSWORD = os.environ.get("DASHBOARD_PASSWORD", "")
 
 # ============================================================
 # AI 系统提示词（v2：基于技能/职责的语义匹配）

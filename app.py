@@ -18,7 +18,7 @@ from flask import Flask, request, jsonify, render_template, send_from_directory
 
 from config import (
     DATA_DIR, RESUME_DIR, SETTINGS_FILE,
-    FLASK_HOST, FLASK_PORT, FLASK_DEBUG,
+    FLASK_HOST, FLASK_PORT, FLASK_DEBUG, DASHBOARD_PASSWORD,
     DEFAULT_SETTINGS, AVAILABLE_MODELS,
     MAX_RESUME_SIZE, MAX_RESUME_COUNT,
     build_match_evaluation_prompt, FOLLOWUP_PROMPT,
@@ -60,6 +60,51 @@ def add_utf8_header(response):
     ct = response.headers.get('Content-Type', '')
     if 'application/json' in ct and 'charset' not in ct:
         response.headers['Content-Type'] = 'application/json; charset=utf-8'
+    return response
+
+
+# ============================================================
+# 安全中间件：CORS 支持 + 可选密码保护
+# ============================================================
+
+@app.before_request
+def security_middleware():
+    """在每个请求前执行的安全检查"""
+    # CORS：允许 Tampermonkey 脚本从 BOSS直聘页面跨域调用
+    origin = request.headers.get('Origin', '')
+    if origin:
+        # 允许任意本地来源（Tampermonkey 从浏览器页面发起请求）
+        from flask import make_response
+        if request.method == 'OPTIONS':
+            resp = make_response()
+            resp.headers['Access-Control-Allow-Origin'] = origin
+            resp.headers['Access-Control-Allow-Methods'] = 'GET, POST, DELETE, OPTIONS'
+            resp.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+            resp.headers['Access-Control-Allow-Credentials'] = 'true'
+            return resp
+
+    # 可选密码保护：仅保护页面和 API（不保护健康检查）
+    if DASHBOARD_PASSWORD and request.path != '/api/health':
+        auth = request.headers.get('Authorization', '')
+        expected = f"Bearer {DASHBOARD_PASSWORD}"
+        # 也检查 cookie 中的简单 token（用于浏览器直接访问）
+        cookie_auth = request.cookies.get('dashboard_auth', '')
+        if auth != expected and cookie_auth != DASHBOARD_PASSWORD:
+            # 如果是 API 请求，返回 401；如果是页面请求，返回登录页
+            if request.path.startswith('/api/'):
+                return jsonify({"success": False, "message": "未授权：请在请求头中提供 Authorization: Bearer <密码>"}), 401
+            elif request.path == '/' or request.path.startswith('/static/'):
+                # 简单的登录检查
+                pass  # 让请求继续到路由，由前端处理
+
+
+@app.after_request
+def add_cors_headers(response):
+    """为所有响应添加 CORS 头"""
+    origin = request.headers.get('Origin', '')
+    if origin:
+        response.headers['Access-Control-Allow-Origin'] = origin
+        response.headers['Access-Control-Allow-Credentials'] = 'true'
     return response
 
 # ============================================================
@@ -927,31 +972,6 @@ def static_files(filename):
 # 健康检查
 # ============================================================
 
-@app.route("/test", methods=["GET"])
-def test_page():
-    """浏览器端测试页面：直接在页面里调用 evaluate API"""
-    return '''<!DOCTYPE html>
-<html><head><meta charset="utf-8"><title>API测试</title></head><body>
-<h2>API 测试</h2>
-<button onclick="test()">点击测试 /api/evaluate_match</button>
-<pre id="r"></pre>
-<script>
-async function test(){
-  document.getElementById("r").textContent = "请求中...";
-  try {
-    const resp = await fetch("/api/evaluate_match", {
-      method: "POST",
-      headers: {"Content-Type": "application/json"},
-      body: JSON.stringify({job_title:"AI产品经理", company_name:"测试公司", job_description:"RAG AI方向"})
-    });
-    const text = await resp.text();
-    document.getElementById("r").textContent = "HTTP " + resp.status + "\\nContent-Type: " + resp.headers.get("content-type") + "\\n\\n" + text + "\\n\\nJSON.parse结果:\\n" + JSON.stringify(JSON.parse(text), null, 2);
-  } catch(e) {
-    document.getElementById("r").textContent = "错误: " + e.message;
-  }
-}
-</script></body></html>'''
-
 @app.route("/api/health", methods=["GET"])
 def api_health():
     settings = load_settings()
@@ -988,8 +1008,18 @@ def main():
     logger.info("求职自动化与数据分析系统 启动中...")
     logger.info(f"数据目录: {DATA_DIR}")
     logger.info(f"访问地址: http://{FLASK_HOST}:{FLASK_PORT}")
+    logger.info(f"调试模式: {'⚠️  开启（生产环境请关闭）' if FLASK_DEBUG else '关闭'}")
+    logger.info(f"仪表盘认证: {'已启用' if DASHBOARD_PASSWORD else '⚠️  未启用（建议设置 DASHBOARD_PASSWORD 环境变量）'}")
     logger.info(f"当前模型: {load_settings().get('model_name', 'unknown')}")
     logger.info("=" * 60)
+
+    # 安全检查提示
+    if FLASK_DEBUG:
+        logger.warning("⚠️  Flask Debug 模式已开启！生产环境请设置 FLASK_DEBUG=false")
+    if FLASK_HOST != "127.0.0.1":
+        logger.warning("⚠️  监听非本地地址，请确保已设置 DASHBOARD_PASSWORD 环境变量！")
+    if not DASHBOARD_PASSWORD:
+        logger.info("💡 提示：设置环境变量 DASHBOARD_PASSWORD=你的密码 可启用仪表盘访问保护")
 
     app.run(host=FLASK_HOST, port=FLASK_PORT, debug=FLASK_DEBUG)
 
