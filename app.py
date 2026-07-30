@@ -24,7 +24,7 @@ from config import (
     build_match_evaluation_prompt, FOLLOWUP_PROMPT,
     load_settings, save_settings, get_setting,
     ensure_data_dir, invalidate_cache,
-    get_resume_knowledge_base,
+    get_resume_knowledge_base, get_version,
 )
 
 # ============================================================
@@ -986,6 +986,20 @@ def api_health():
 
 
 # ============================================================
+# 版本信息
+# ============================================================
+
+@app.route("/api/version", methods=["GET"])
+def api_version():
+    """获取当前系统版本"""
+    return jsonify({
+        "success": True,
+        "version": get_version(),
+        "update_check_url": load_settings().get("update_check_url", ""),
+    })
+
+
+# ============================================================
 # 错误处理
 # ============================================================
 
@@ -1011,6 +1025,7 @@ def main():
     logger.info(f"调试模式: {'⚠️  开启（生产环境请关闭）' if FLASK_DEBUG else '关闭'}")
     logger.info(f"仪表盘认证: {'已启用' if DASHBOARD_PASSWORD else '⚠️  未启用（建议设置 DASHBOARD_PASSWORD 环境变量）'}")
     logger.info(f"当前模型: {load_settings().get('model_name', 'unknown')}")
+    logger.info(f"系统版本: v{get_version()}")
     logger.info("=" * 60)
 
     # 安全检查提示

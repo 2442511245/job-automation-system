@@ -19,6 +19,18 @@ DATA_DIR = os.path.join(os.path.expanduser("~"), "JobReports")
 SETTINGS_FILE = os.path.join(DATA_DIR, "settings.json")
 RESUME_DIR = os.path.join(DATA_DIR, "resumes")  # 母版简历知识库目录（永久存储）
 
+# ============================================================
+# 版本信息
+# ============================================================
+def get_version() -> str:
+    """读取当前版本号"""
+    version_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), "VERSION")
+    try:
+        with open(version_file, "r", encoding="utf-8") as f:
+            return f.read().strip()
+    except (IOError, FileNotFoundError):
+        return "unknown"
+
 # 确保目录存在
 def ensure_data_dir():
     os.makedirs(DATA_DIR, exist_ok=True)
@@ -77,6 +89,9 @@ DEFAULT_SETTINGS = {
 
     # --- 状态采集 ---
     "collection_reminder_time": "19:50",    # 每日提醒时间
+
+    # --- 更新检查 ---
+    "update_check_url": "",                 # 检查更新的远程地址（由卖家提供）
 }
 
 # ============================================================

@@ -400,6 +400,18 @@ async function healthCheck() {
         $('#serverStatus').className = 'status-dot offline';
         $('#serverStatusText').textContent = '无法连接';
     }
+
+    // 获取版本信息
+    try {
+        const vResp = await fetch(API_BASE + '/api/version');
+        const vData = await vResp.json();
+        if (vData.version) {
+            const vEl = $('#versionDisplay');
+            if (vEl) vEl.textContent = 'v' + vData.version;
+        }
+    } catch (e) {
+        // 静默忽略版本检查失败
+    }
 }
 
 // ============================================================
