@@ -233,11 +233,11 @@ def build_match_evaluation_prompt(settings: dict) -> str:
     template_c = settings.get("greeting_template_c", "").strip()
 
     if not template_a:
-        template_a = "{greeting_placeholder_a}"
+        template_a = "（请在仪表盘「系统设置」中填写招呼语模板A — 偏技术开发岗）"
     if not template_b:
-        template_b = "{greeting_placeholder_b}"
+        template_b = "（请在仪表盘「系统设置」中填写招呼语模板B — 偏产品方案岗）"
     if not template_c:
-        template_c = "{greeting_placeholder_c}"
+        template_c = "（请在仪表盘「系统设置」中填写招呼语模板C — 通用版）"
 
     prompt = f"""你是一位专业的招聘匹配度评估专家。请基于候选人完整画像与目标岗位进行**关键词驱动的语义匹配评估**。
 
